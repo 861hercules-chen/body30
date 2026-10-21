@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1f7a5c">
+<title>身体三十天</title>
+<style>
+*{box-sizing:border-box}body{margin:0}
+/* Layout: one narrow column; a 30-cell calendar grid is the hero, rules below */
+:root{
+  --bg:#eef2f1; --surface:#ffffff; --ink:#15211f; --muted:#5d6d6a; --line:#d4dddb;
+  --accent:#1f7a5c; --accent-ink:#ffffff; --warn:#b4471f; --today:#e3efe9;
+  --display:"Noto Serif SC","Songti SC",serif;
+  --body:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1716; --surface:#172220; --ink:#e4ecea; --muted:#93a39f; --line:#2a3735;
+  --accent:#3fae86; --accent-ink:#0b1412; --warn:#e9875f; --today:#1d2f2a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1716; --surface:#172220; --ink:#e4ecea; --muted:#93a39f; --line:#2a3735;
+  --accent:#3fae86; --accent-ink:#0b1412; --warn:#e9875f; --today:#1d2f2a; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px;display:flex;flex-direction:column;gap:24px}
+h1{font-family:var(--display);font-weight:900;font-size:34px;line-height:1.15;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:6px 0 0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
+.stat b{display:block;font-family:var(--display);font-size:28px;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-size:12px;color:var(--muted);letter-spacing:.05em}
+.warn{border:1px solid var(--warn);color:var(--warn);border-radius:10px;padding:10px 12px;font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.day{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;aspect-ratio:1;max-width:100%;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0}
+.day small{font-size:10px;color:var(--muted);line-height:1}
+.day strong{font-size:17px;font-variant-numeric:tabular-nums}
+.day.done{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.day.done small{color:var(--accent-ink);opacity:.8}
+.day.today{outline:2px solid var(--accent);outline-offset:2px}
+.day.today:not(.done){background:var(--today)}
+.day.missed{border-style:dashed;color:var(--muted)}
+.day:disabled{cursor:default;opacity:.45}
+.day:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.cta{appearance:none;border:0;border-radius:10px;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:700;font-size:17px;padding:14px;cursor:pointer}
+.cta.off{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.cta:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+h2{font-family:var(--display);font-weight:600;font-size:18px;margin:0 0 8px}
+ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+li b{color:var(--accent)}
+.foot{font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.day{transition:background .15s,color .15s}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>身体三十天</h1>
+    <p class="sub" id="range">2026年10月21日 — 11月19日</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><b id="sDone">0</b><span>已打卡</span></div>
+    <div class="stat"><b id="sStreak">0</b><span>当前连续</span></div>
+    <div class="stat"><b id="sLeft">30</b><span>剩余天数</span></div>
+  </div>
+
+  <div class="warn" id="warn" hidden>昨天断了一天。今天必须打勾，别连着断两天。</div>
+
+  <button class="cta" id="todayBtn" type="button">今天做完了，打勾</button>
+
+  <div class="grid" id="grid" aria-label="三十天打卡格"></div>
+
+  <section>
+    <h2>每天只做这三件</h2>
+    <ul>
+      <li>早上练 <b>10分钟</b>，不想练就只做2分钟，但别空着</li>
+      <li>固定时间起床，周末也一样</li>
+      <li>饮食只守 <b>一条</b>：晚上9点后不吃，或者不喝含糖饮料</li>
+    </ul>
+  </section>
+  <section>
+    <h2>唯一的硬规矩</h2>
+    <ul><li>断一天没关系，<b>别连着断两天</b>。</li></ul>
+  </section>
+  <p class="foot" id="foot">点格子可以补打或取消。记录保存在这台手机的浏览器里，别清浏览器数据。</p>
+</div>
+<script>
+const START = "2026-10-21", N = 30;
+let done = {};
+
+function key(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function dayDate(i){const [y,m,dd]=START.split("-").map(Number);return new Date(y,m-1,dd+i)}
+function todayIndex(){const t=new Date();t.setHours(0,0,0,0);return Math.round((t-dayDate(0))/864e5)}
+
+function render(){
+  const ti=todayIndex(), grid=document.getElementById("grid");
+  grid.textContent="";
+  let count=0;
+  for(let i=0;i<N;i++){
+    const d=dayDate(i),k=key(d),b=document.createElement("button");
+    b.type="button";b.className="day";b.id="d"+i;
+    const isDone=!!done[k]; if(isDone)count++;
+    if(isDone)b.classList.add("done");
+    if(i===ti)b.classList.add("today");
+    if(i<ti&&!isDone)b.classList.add("missed");
+    if(i>ti)b.disabled=true;
+    b.innerHTML="<small>第"+(i+1)+"天</small><strong>"+(d.getMonth()+1)+"/"+d.getDate()+"</strong>";
+    b.setAttribute("aria-pressed",isDone);
+    b.onclick=()=>toggle(k);
+    grid.appendChild(b);
+  }
+  // streak: count back from today (or yesterday if today not done yet)
+  let s=0,i=Math.min(ti,N-1);
+  if(i>=0&&!done[key(dayDate(i))])i--;
+  while(i>=0&&done[key(dayDate(i))]){s++;i--}
+  document.getElementById("sDone").textContent=count;
+  document.getElementById("sStreak").textContent=s;
+  document.getElementById("sLeft").textContent=Math.min(N,Math.max(0,N-ti));
+  const tk=ti>=0&&ti<N?key(dayDate(ti)):null, btn=document.getElementById("todayBtn");
+  if(!tk){btn.hidden=true}else{
+    btn.hidden=false;
+    btn.textContent=done[tk]?"今天已打勾 ✓（点一下取消）":"今天做完了，打勾";
+    btn.classList.toggle("off",!!done[tk]);
+    btn.onclick=()=>toggle(tk);
+  }
+  const y=ti-1;
+  document.getElementById("warn").hidden=!(tk&&y>=0&&!done[key(dayDate(y))]&&!done[tk]);
+}
+
+async function toggle(k){
+  if(done[k])delete done[k];else done[k]=true;
+  render();
+  try{localStorage.setItem("body30",JSON.stringify(done))}catch(e){}
+}
+
+try{done=JSON.parse(localStorage.getItem("body30")||"{}")||{}}catch(e){done={}}
+render();
+</script>
+</body>
+</html>
